@@ -1,0 +1,8 @@
+Django>=3.2
+mutagen
+librosa
+numpy
+scikit-learn
+tensorflow
+joblib
+python-decouple
