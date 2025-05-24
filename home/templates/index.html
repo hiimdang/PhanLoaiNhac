@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gán nhãn thể loại âm nhạc</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="{% static 'style.css' %}">
+</head>
+
+<body>
+  <div class="container">
+    <div class="main-content">
+      <div class="header">
+        <div class="header-left">
+          Nhóm 4
+        </div>
+
+        <div class="header-right">
+          <a href="{% url 'index' %}" class="nav-link">Trang chủ</a>
+          <a href="{% url 'model' %}" class="nav-link">Mô hình</a>
+          <!-- <a href="#" class="nav-link">Đội nhóm</a> -->
+        </div>
+      </div>
+
+      <div class="content-section">
+        <div class="section-header">
+        </div>
+
+        <div class="song-list">
+          <div class="song-list-header">
+            <div>#</div>
+            <div>PLAY</div>
+            <div>TÊN BÀI</div>
+            <div>NGHỆ SĨ</div>
+            <div>THỜI LƯỢNG</div>
+          </div>
+          {% for song in page_obj %}
+          <div class="song-card" data-title="{{ song.title }}" data-artist="{{ song.artist }}"
+            data-duration="{{ song.duration }}" data-lyrics="{{ song.lyrics|escapejs }}"
+            data-audio-url="{{ song.audio_file.url }}">
+            <div class="song-number">{{ forloop.counter }}</div>
+            <div class="song-play"><i class="fas fa-play"></i></div>
+            <div class="song-title-container">
+              <div class="song-info">
+                <div class="song-title">{{ song.title }}</div>
+              </div>
+            </div>
+            <div class="song-title-container">
+              <div class="song-info">
+                <div class="song-artist">{{ song.artist }}</div>
+              </div>
+            </div>
+            <div class="song-duration">{{ song.duration }}</div>
+          </div>
+          {% empty %}
+          <p>Không có bài hát nào.</p>
+          {% endfor %}
+        </div>
+
+        <!-- PHÂN TRANG -->
+        <div class="pagination">
+          {% if page_obj.has_previous %}
+          <a href="?page={{ page_obj.previous_page_number }}" class="pagination-button">
+            <i class="fas fa-chevron-left"></i>
+          </a>
+          {% endif %}
+
+          {% for page in page_obj.paginator.page_range %}
+          {% if page == page_obj.number %}
+          <span class="pagination-button active">{{ page }}</span>
+          {% else %}
+          <a href="?page={{ page }}" class="pagination-button">{{ page }}</a>
+          {% endif %}
+          {% endfor %}
+
+          {% if page_obj.has_next %}
+          <a href="?page={{ page_obj.next_page_number }}" class="pagination-button">
+            <i class="fas fa-chevron-right"></i>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Player Bar -->
+  <div class="player-bar">
+    <div class="now-playing">
+      <div class="song-info">
+        <div class="song-title">Tên bài</div>
+        <div class="song-artist">Tên nghệ sĩ</div>
+      </div>
+    </div>
+
+    <div class="player-controls">
+      <div class="control-buttons">
+        <button class="control-button">
+          <i class="fas fa-step-backward"></i>
+        </button>
+        <button class="play-button">
+          <i class="fas fa-play"></i>
+        </button>
+        <button class="control-button">
+          <i class="fas fa-step-forward"></i>
+        </button>
+      </div>
+      <div class="progress-container">
+        <div class="progress-row">
+          <span class="time">00:00</span>
+          <div class="progress-bar">
+            <div class="progress"></div>
+            <div class="progress-handle"></div>
+          </div>
+          <span class="time">05:00</span>
+        </div>
+
+        <div class="genre-display">
+          <i class="fas fa-music"></i>
+          <span class="genre-text">Thể loại: ...</span>
+          <span class="confidence-text">(Độ tin cậy: ...)</span>
+        </div>
+      </div>
+      <div class="lyrics-box" id="lyrics-box">
+        <textarea readonly placeholder="Lời bài hát sẽ hiển thị ở đây..."></textarea>
+      </div>
+    </div>
+
+    <div class="volume-controls">
+      <button class="control-button">
+        <i class="fas fa-volume-up"></i>
+      </button>
+      <div class="volume-bar">
+        <div class="volume"></div>
+        <div class="volume-handle"></div>
+      </div>
+    </div>
+  </div>
+  <audio id="audio-player" src="" preload="metadata"></audio>
+  <script src="{% static 'script.js' %}"></script>
+</body>
+
+</html>

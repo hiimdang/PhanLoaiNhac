@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Mô hình</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+
+    <link rel="stylesheet" href="{% static 'style.css' %}" />
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 30px;
+            background-color: var(--background-dark, #1e1e1e);
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color, #444);
+        }
+
+        .header-left {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .header-right .nav-link {
+            margin-left: 20px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .header-right .nav-link:hover {
+            text-decoration: underline;
+        }
+
+        .main-content {
+            margin-top: 80px;
+            padding: 20px;
+        }
+
+        h1,
+        h2 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Hộp chứa biểu đồ */
+        .chart-container {
+            max-width: 800px;
+            margin: 0 auto 60px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            overflow-x: auto;
+            color: #000;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: auto !important;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+        th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="main-content">
+            <div class="header">
+                <div class="header-left">
+                    Nhóm 4
+                </div>
+                <div class="header-right">
+                    <a href="{% url 'index' %}" class="nav-link">Trang chủ</a>
+                    <a href="{% url 'model' %}" class="nav-link">Mô hình</a>
+                    <a href="#" class="nav-link">Đội nhóm</a>
+                </div>
+            </div>
+
+            <div class="content-section">
+                <h1>Kết quả huấn luyện mô hình</h1>
+
+                <!-- Biểu đồ Loss và Validation Loss -->
+                <div class="chart-container">
+                    <canvas id="lossChart"></canvas>
+                </div>
+
+                <!-- Biểu đồ Accuracy và Validation Accuracy -->
+                <div class="chart-container">
+                    <canvas id="accuracyChart"></canvas>
+                </div>
+
+                <!-- Biểu đồ Learning Rate -->
+                <div class="chart-container">
+                    <canvas id="lrChart"></canvas>
+                </div>
+
+                <!-- Bảng Ma trận nhầm lẫn -->
+                <div class="chart-container">
+                    <h2>Ma trận nhầm lẫn (Confusion Matrix)</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Thực tế \ Dự đoán</th>
+                                {% for label in labels_text %}
+                                <th>{{ label }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row, label in confusion_matrix_with_labels %}
+                            <tr>
+                                <th>{{ label }}</th>
+                                {% for cell in row %}
+                                <td>{{ cell }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Bảng báo cáo phân loại -->
+                <div class="chart-container">
+                    <h2>Báo cáo phân loại (Classification Report)</h2>
+                    {% load dict_extras %}
+
+                    <table border="1" cellspacing="0" cellpadding="5">
+                        <thead>
+                            <tr>
+                                <th>Label</th>
+                                <th>Precision</th>
+                                <th>Recall</th>
+                                <th>F1-score</th>
+                                <th>Support</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for label in labels_text %}
+                            <tr>
+                                <th>{{ label }}</th>
+                                <td>{{ classification_report|get_item:label|dict_get:"precision"|floatformat:2 }}</td>
+                                <td>{{ classification_report|get_item:label|dict_get:"recall"|floatformat:2 }}</td>
+                                <td>{{ classification_report|get_item:label|dict_get:"f1-score"|floatformat:2 }}</td>
+                                <td>{{ classification_report|get_item:label|dict_get:"support"|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                            <tr style="font-weight:bold; background:#eee;">
+                                <th>avg / total</th>
+                                <td>
+                                    {{ classification_report|get_item:"macro avg"|dict_get:"precision"|floatformat:2 }}
+                                </td>
+                                <td>
+                                    {{ classification_report|get_item:"macro avg"|dict_get:"recall"|floatformat:2 }}
+                                </td>
+                                <td>
+                                    {{ classification_report|get_item:"macro avg"|dict_get:"f1-score"|floatformat:2 }}
+                                </td>
+                                <td>
+                                    {{ classification_report|get_item:"macro avg"|dict_get:"support"|floatformat:2 }}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const loss = JSON.parse('{{ loss|default:"[]"|escapejs }}');
+            const val_loss = JSON.parse('{{ val_loss|default:"[]"|escapejs }}');
+            const accuracy = JSON.parse('{{ accuracy|default:"[]"|escapejs }}');
+            const val_accuracy = JSON.parse('{{ val_accuracy|default:"[]"|escapejs }}');
+            const learning_rate = JSON.parse('{{ learning_rate|default:"[]"|escapejs }}');
+
+            // Tạo label cho các epoch
+            const labels = Array.from({ length: loss.length }, (_, i) => `Epoch ${i + 1}`);
+
+            // Biểu đồ Loss
+            new Chart(document.getElementById('lossChart'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Loss',
+                            data: loss,
+                            borderColor: 'red',
+                            fill: false,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Validation Loss',
+                            data: val_loss,
+                            borderColor: 'orange',
+                            fill: false,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Loss qua các Epochs',
+                            font: { size: 18 }
+                        },
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Biểu đồ Accuracy
+            new Chart(document.getElementById('accuracyChart'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Accuracy',
+                            data: accuracy,
+                            borderColor: 'blue',
+                            fill: false,
+                            tension: 0.3
+                        },
+                        {
+                            label: 'Validation Accuracy',
+                            data: val_accuracy,
+                            borderColor: 'green',
+                            fill: false,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Accuracy qua các Epochs',
+                            font: { size: 18 }
+                        },
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Biểu đồ Learning Rate
+            new Chart(document.getElementById('lrChart'), {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Learning Rate',
+                            data: learning_rate,
+                            borderColor: 'purple',
+                            fill: false,
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Learning Rate qua các Epochs',
+                            font: { size: 18 }
+                        },
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+        </script>
+    </div>
+</body>
+
+</html>
