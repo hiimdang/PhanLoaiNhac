@@ -8,7 +8,7 @@ import joblib
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-model_path = os.path.join(BASE_DIR, 'home', 'predict_ults', 'best_model.h5')
+model_path = os.path.join(BASE_DIR, 'home', 'predict_ults', 'best_model (6).h5')
 scaler_path = os.path.join(BASE_DIR, 'home', 'predict_ults', 'scaler.pkl')
 labels_path = os.path.join(BASE_DIR, 'home', 'predict_ults', 'labels.pkl')
 vectorizer_path = os.path.join(BASE_DIR, 'home', 'predict_ults', 'vectorizer.pkl')
